@@ -1,0 +1,12 @@
+# Ignore .idea folder (JetBrains IDEs)
+.idea/
+
+# Ignore Python bytecode files
+*.pyc
+
+# Ignore node_modules (for JavaScript projects)
+node_modules/
+
+# Ignore build directories
+build/
+dist/
