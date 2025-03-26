@@ -4,23 +4,23 @@ import math
 
 x, y = load_iris(return_X_y=True)
 
-def predict(points_train, clazzes_train, points_test, k):
+def predict(points_train, labels_train, points_test, k):
     results = []
     if is_list_of_lists(points_test):
         for point_test in points_test:
-            results.append(predict_point(points_train, clazzes_train, point_test, k))
+            results.append(predict_point(points_train, labels_train, point_test, k))
     else:
-        results.append(predict_point(points_train, clazzes_train, points_test, k))
+        results.append(predict_point(points_train, labels_train, points_test, k))
     return results
 
-def predict_point(points_train, clazzes_train, points_test, k):
+def predict_point(points_train, labels_train, points_test, k):
     neighbors = []
     for point_index, point_train in enumerate(points_train):
         distance = calc_distance(point_train, points_test)
-        neighbors.append({'distance': distance, 'clazz': clazzes_train[point_index]})
+        neighbors.append({'distance': distance, 'label': labels_train[point_index]})
     neighbors.sort(key=lambda neighbor: neighbor['distance'])
     neighbors = neighbors[:k]
-    return count_majority(neighbors)
+    return get_majority(neighbors)
 
 def calc_distance(point_a, point_b):
     difference_sum = 0
@@ -28,24 +28,11 @@ def calc_distance(point_a, point_b):
         difference_sum += (point_a[feature_index] - point_b[feature_index]) ** 2
     return math.sqrt(difference_sum)
 
-def count_majority(neighbors):
+def get_majority(neighbors):
     counts = {}
     for neighbor in neighbors:
-        clazz = neighbor['clazz']
-        if clazz in counts:
-            counts[clazz] += 1
-        else:
-            counts[clazz] = 1
-
-    majority_category = None
-    max_count = 0
-
-    for category, count in counts.items():
-        if count > max_count:
-            max_count = count
-            majority_category = category
-
-    return majority_category
+        counts[neighbor] = counts.get(neighbor, 0) + 1
+    return max(counts, key=counts.get)
 
 def is_list_of_lists(var):
     return isinstance(var, list) and all(isinstance(i, list) for i in var)
