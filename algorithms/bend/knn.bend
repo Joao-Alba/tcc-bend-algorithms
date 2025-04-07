@@ -2,7 +2,29 @@ object Point {features: List(f24), label: u24}
 object MeasuredPoint {point: Point, distance: f24}
 type LabelTree:
   Nil
-  Node {value: u24, count: u24, ~left, ~right}
+  Node {label: u24, count: u24, ~left, ~right}
+
+def sort(xs: List(MeasuredPoint)) -> List(MeasuredPoint):
+  match xs:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      return insert(xs.head, sort(xs.tail))
+
+def insert(v: MeasuredPoint, xs: List(MeasuredPoint)) -> List(MeasuredPoint):
+  match xs:
+    case List/Nil:
+      return List/Cons(v, List/Nil)
+    case List/Cons:
+      return swap_gt(v, xs.head, xs.tail)
+
+def swap_gt(v: MeasuredPoint, x: MeasuredPoint, xs: List(MeasuredPoint)) -> List(MeasuredPoint):
+  open MeasuredPoint: v
+  open MeasuredPoint: x
+  if x.distance > v.distance:
+    return List/Cons(v, List/Cons(x, xs))
+  else:
+    return List/Cons(x, insert(v, xs))
 
 def calc_distance(point_a: Point, point_b: Point) -> f24:
   open Point: point_a
@@ -33,13 +55,14 @@ def predict(points_train: List(Point), points_test: List(Point), k: u24) -> List
 
 def predict_single(points_train: List(Point), point: Point, k: u24) -> u24:
   distances = calc_distances(points_train, point)
-  #sort by distance
-  first_k_distances = take_k_first(distances, k)
+  sorted_distances = sort(distances)
+  first_k_distances = take_k_first(sorted_distances, k)
   return get_majority(first_k_distances)
 
 def get_majority(points: List(MeasuredPoint)) -> u24:
   label_tree = build_label_tree(points, LabelTree/Nil)
-  return find_max(label_tree)
+  (max_label, max_value) = find_max(label_tree)
+  return max_label
 
 def build_label_tree(points: List(MeasuredPoint), label_tree: LabelTree) -> LabelTree:
   match points:
@@ -50,32 +73,34 @@ def build_label_tree(points: List(MeasuredPoint), label_tree: LabelTree) -> Labe
       open Point: points.head.point
       return build_label_tree(points.tail, insert_label_into(label_tree, points.head.point.label))
 
-def insert_label_into(label_tree: LabelTree, new_value: u24) -> LabelTree:
+def insert_label_into(label_tree: LabelTree, new_label: u24) -> LabelTree:
   match label_tree:
     case LabelTree/Nil:
-      return LabelTree/Node {value: new_value, count: 1, left: LabelTree/Nil, right: LabelTree/Nil}
+      return LabelTree/Node {label: new_label, count: 1, left: LabelTree/Nil, right: LabelTree/Nil}
     case LabelTree/Node:
-      if new_value == label_tree.value:
-        return LabelTree/Node {value: label_tree.value, count: label_tree.count + 1, left: label_tree.left, right: label_tree.right}
-      elif new_value < label_tree.value:
-        return LabelTree/Node {value: label_tree.value, count: label_tree.count, left: insert_label_into(label_tree.left, new_value), right: label_tree.right}
+      if new_label == label_tree.label:
+        return LabelTree/Node {label: label_tree.label, count: label_tree.count + 1, left: label_tree.left, right: label_tree.right}
+      elif new_label < label_tree.label:
+        return LabelTree/Node {label: label_tree.label, count: label_tree.count, left: insert_label_into(label_tree.left, new_label), right: label_tree.right}
       else:
-        return LabelTree/Node {value: label_tree.value, count: label_tree.count, left: label_tree.left, right: insert_label_into(label_tree.right, new_value)}
+        return LabelTree/Node {label: label_tree.label, count: label_tree.count, left: label_tree.left, right: insert_label_into(label_tree.right, new_label)}
 
-def find_max(label_tree: LabelTree) -> u24:
+def find_max(label_tree: LabelTree) -> (u24, u24):
   match label_tree:
     case LabelTree/Nil:
-      return 0
+      return (0, 0)
     case LabelTree/Node:
-      return max(label_tree.value, find_max(label_tree.left), find_max(label_tree.right))
+      max_label_left, max_count_left = find_max(label_tree.left)
+      max_label_right, max_count_right = find_max(label_tree.right)
+      return max(label_tree.label, label_tree.count, max_label_left, max_count_left, max_label_right, max_count_right)
 
-def max(num1: u24, num2: u24, num3: u24) -> u24:
+def max(label1: u24, num1: u24, label2: u24, num2: u24, label3: u24, num3: u24) -> (u24, u24):
   if num1 >= num2 & num1 >= num3:
-    return num1
+    return (label1, num1)
   elif num2 >= num1 & num2 >= num3:
-    return num2
+    return (label2, num2)
   else:
-    return num3
+    return (label3, num3)
 
 def calc_distances(points_train: List(Point), point: Point) -> List(MeasuredPoint):
   (list_length, list) = List/length(points_train)
@@ -107,7 +132,7 @@ def take_k_first(points: List(MeasuredPoint), k: u24) -> List(MeasuredPoint):
 def main() -> List(u24):
   points_train = generate_points_train()
   points_test = generate_points_test()
-  return predict(points_train, points_test, 2)
+  return predict(points_train, points_test, 5)
   
 def generate_points_train() -> List(Point):
   return [Point {features: [6.3, 3.3, 4.7, 1.6], label: 1},
