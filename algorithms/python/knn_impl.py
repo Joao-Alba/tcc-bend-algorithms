@@ -40,5 +40,9 @@ def is_list_of_lists(var):
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
 x_train = x_train.tolist(); x_test = x_test.tolist(); y_train = y_train.tolist(); y_test = y_test.tolist()
 
+print(x_train)
+print(y_train)
+print(x_test)
+print(y_test)
 y_pred = predict(x_train, y_train, x_test, 5)
 print(y_pred)
