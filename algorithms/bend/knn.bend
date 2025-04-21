@@ -50,11 +50,14 @@ def predict(points_train: List(Point), points_test: List(Point), k: u24) -> List
     case List/Nil:
       return List/Nil
     case List/Cons:
+      #TODO: good place to optimize and make each predict_single parallel
+      #TODO: points_train would need to be a tree. Maybe binary with only leaf values
       return List/Cons{head: predict_single(points_train, points_test.head, k),
                        tail: predict(points_train, points_test.tail, k)}
 
 def predict_single(points_train: List(Point), point: Point, k: u24) -> u24:
   distances = calc_distances(points_train, point)
+  #TODO: use a better sort
   sorted_distances = sort(distances)
   first_k_distances = take_k_first(sorted_distances, k)
   return get_majority(first_k_distances)
@@ -130,6 +133,9 @@ def take_k_first(points: List(MeasuredPoint), k: u24) -> List(MeasuredPoint):
       return result
 
 def main() -> List(u24):
+  #TODO: refactor stuff to get better performance.
+  #TODO: it might be possible to construct the distance tree and reduce it to top K in a single iteration,
+  #TODO: so sorting wouldn't be necessary
   points_train = generate_points_train()
   points_test = generate_points_test()
   return predict(points_train, points_test, 5)
