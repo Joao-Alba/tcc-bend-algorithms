@@ -1,7 +1,22 @@
 type DecisionTree:
-  Node {features_label: u24, threshold: f24, ~left, ~right}
+  Node {feature_index: u24, threshold: f24, ~left, ~right}
   Leaf {prediction: u24}
 object Point {features: Map(f24), label: u24}
+
+def grow_tree(point_tree: Tree(Point), every_feature_indexes: List(u24), max_depth: u24, current_depth: u24) -> DecisionTree:
+  if current_depth >= max_depth | calc_gini_impurity(point_tree) == 0.0:
+    (labels_count, found_labels) = create_labels_count(point_tree)
+    (major_label, major_count) = find_majority(labels_count, found_labels)
+    return DecisionTree/Leaf {prediction: major_label}
+  else:
+    (best_impurity, best_feature_index, best_threshold) = find_best_split(point_tree, every_feature_indexes)
+    (maybe_left_tree, maybe_right_tree) = split_points(point_tree, best_feature_index, best_threshold)
+    left_branch = grow_tree(Maybe/unwrap(maybe_left_tree), every_feature_indexes, max_depth, current_depth + 1)
+    right_branch = grow_tree(Maybe/unwrap(maybe_right_tree), every_feature_indexes, max_depth, current_depth + 1)
+    return DecisionTree/Node {feature_index: best_feature_index,
+                              threshold: best_threshold,
+                              left: left_branch,
+                              right: right_branch}
 
 def length_of(tree: Tree(T)) -> u24:
   fold tree:
@@ -142,15 +157,47 @@ def add_to_set(list: List(u24), value: u24) -> List(u24):
       else:
         return List/Cons {head: list.head, tail: add_to_set(list.tail, value)}
 
-def main() -> u24:
-  point_tree = generate_points()
-  (impurity, feature_index, threshold) = find_best_split(point_tree, [0, 1, 2, 3])
-  return feature_index
+def find_majority(labels_count: Map(u24), found_labels: List(u24)) -> (u24, u24):
+  fold found_labels:
+    case List/Nil:
+      return (999, 0)
+    case List/Cons:
+      (next_label, next_count) = found_labels.tail()
+      current_count = labels_count[found_labels.head]
+      if next_count >= current_count:
+        return (next_label, next_count)
+      else:
+        return (found_labels.head, current_count)
 
-def generate_points() -> Tree(Point):
-  return ![
+def predict(test_point_tree: Tree(Point), decision_tree: DecisionTree) -> Tree(Point):
+  fold test_point_tree:
+    case Tree/Leaf:
+      current_point = test_point_tree.value
+      open Point: current_point
+      return !Point {features: current_point.features, label: predict_single(current_point, decision_tree)}
+    case Tree/Node:
+      return ![test_point_tree.left(), test_point_tree.right()]
+
+def predict_single(point: Point, decision_tree: DecisionTree) -> u24:
+  fold decision_tree:
+    case DecisionTree/Leaf:
+      return decision_tree.prediction
+    case DecisionTree/Node:
+      open Point: point
+      if point.features[decision_tree.feature_index] <= decision_tree.threshold:
+        return decision_tree.left()
+      else:
+        return decision_tree.right()
+
+def main() -> Tree(Point):
+  (point_tree, every_feature_indexes) = generate_train_points()
+  decision_tree = grow_tree(point_tree, every_feature_indexes, 5, 0)
+  return predict(generate_test_points(), decision_tree)
+
+def generate_train_points() -> (Tree(Point), List(u24)):
+  point_tree = ![
   ![
-    !Point{features: {0: 7.13, 1: 6.2, 2: 1.3, 3: -5.4}, label: 1},
+    !Point{features: {0: 1.1, 1: 1.2, 2: 1.3, 3: 1.4}, label: 1},
     ![
       !Point{features: {0: 1.6, 1: 1.5, 2: 1.7, 3: 1.5}, label: 1},
       !Point{features: {0: 5.7, 1: 5.7, 2: 5.0, 3: 5.6}, label: 2}
@@ -166,4 +213,14 @@ def generate_points() -> Tree(Point):
 	   ]
 	 ]
    ]
+  ]
+  return (point_tree, [0, 1, 2, 3])
+
+def generate_test_points() -> Tree(Point):
+  return ![
+           ![
+             !Point{features: {0: 3.4, 1: 1.2, 2: 1.3, 3: 1.4}, label: 9},
+             !Point{features: {0: 15.1, 1: 1.2, 2: 1.3, 3: 1.4}, label: 9}
+           ],
+           !Point{features: {0: 0.7, 1: 1.2, 2: 1.3, 3: 1.4}, label: 9}
   ]
