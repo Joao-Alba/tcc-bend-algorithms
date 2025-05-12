@@ -15,15 +15,16 @@ def find_best_split(point_tree: Tree(Point), every_feature_indexes: List(u24)) -
     case List/Nil:
       return (1.0, 9, 0.0)
     case List/Cons:
-      (current_impurity, current_feature_index, current_threshold) = find_best_split_feature(point_tree, point_tree, every_feature_indexes.head)
+      (current_impurity, current_feature_index, current_threshold) = find_best_split_feature(point_tree, every_feature_indexes.head)
       (next_impurity, next_feature_index, next_threshold) = every_feature_indexes.tail()
       if current_impurity <= next_impurity:
         return (current_impurity, current_feature_index, current_threshold)
       else:
         return (next_impurity, next_feature_index, current_threshold)
 
-def find_best_split_feature(point_tree: Tree(Point), full_tree: Tree(Point), feature_index: u24) -> (f24, u24, f24):
-  match point_tree:
+def find_best_split_feature(point_tree: Tree(Point), feature_index: u24) -> (f24, u24, f24):
+  full_tree = point_tree
+  fold point_tree:
     case Tree/Leaf:
       current_point = point_tree.value
       open Point: current_point
@@ -31,8 +32,8 @@ def find_best_split_feature(point_tree: Tree(Point), full_tree: Tree(Point), fea
       impurity = check_trees_weight(maybe_left_tree, maybe_right_tree)
       return (impurity, feature_index, current_point.features[feature_index])
     case Tree/Node:
-      (left_impurity, left_feature_index, left_threshold) = find_best_split_feature(point_tree.left, full_tree, feature_index)
-      (right_impurity, right_feature_index, right_threshold) = find_best_split_feature(point_tree.right, full_tree, feature_index)
+      (left_impurity, left_feature_index, left_threshold) = point_tree.left()
+      (right_impurity, right_feature_index, right_threshold) = point_tree.right()
       if left_impurity <= right_impurity:
         return (left_impurity, left_feature_index, left_threshold)
       else:
@@ -141,15 +142,15 @@ def add_to_set(list: List(u24), value: u24) -> List(u24):
       else:
         return List/Cons {head: list.head, tail: add_to_set(list.tail, value)}
 
-def main() -> f24:
+def main() -> u24:
   point_tree = generate_points()
-  (impurity, feature_index, threshold) = find_best_split_feature(point_tree, point_tree, 0)
-  return threshold
+  (impurity, feature_index, threshold) = find_best_split(point_tree, [0, 1, 2, 3])
+  return feature_index
 
 def generate_points() -> Tree(Point):
   return ![
   ![
-    !Point{features: {0: 1.13, 1: 1.2, 2: 1.3, 3: 1.4}, label: 1},
+    !Point{features: {0: 7.13, 1: 6.2, 2: 1.3, 3: -5.4}, label: 1},
     ![
       !Point{features: {0: 1.6, 1: 1.5, 2: 1.7, 3: 1.5}, label: 1},
       !Point{features: {0: 5.7, 1: 5.7, 2: 5.0, 3: 5.6}, label: 2}
