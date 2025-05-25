@@ -189,38 +189,196 @@ def predict_single(point: Point, decision_tree: DecisionTree) -> u24:
       else:
         return decision_tree.right()
 
-def main() -> Tree(Point):
-  (point_tree, every_feature_indexes) = generate_train_points()
-  decision_tree = grow_tree(point_tree, every_feature_indexes, 5, 0)
-  return predict(generate_test_points(), decision_tree)
+def main():
+  with IO:
+    features_indexes = [0, 1, 2, 3]
+    train_tree <- generate_points("trainA.txt", features_indexes)
+    test_tree <- generate_points("testA.txt", features_indexes)
+    return time_process(train_tree, test_tree, features_indexes, 5, 0)
 
-def generate_train_points() -> (Tree(Point), List(u24)):
-  point_tree = ![
-  ![
-    !Point{features: {0: 1.1, 1: 1.2, 2: 1.3, 3: 1.4}, label: 1},
-    ![
-      !Point{features: {0: 1.6, 1: 1.5, 2: 1.7, 3: 1.5}, label: 1},
-      !Point{features: {0: 5.7, 1: 5.7, 2: 5.0, 3: 5.6}, label: 2}
-	 ]
-	],
-  ![
-    !Point{features: {0: 1.0, 1: 1.5, 2: 1.7, 3: 1.8}, label: 1},
-    ![
-      !Point{features: {0: 1.2, 1: 1.1, 2: 1.6, 3: 1.9}, label: 1},
-      ![
-        !Point{features: {0: 9.7, 1: 9.7, 2: 9.9, 3: 9.3}, label: 3},
-        !Point{features: {0: 5.1, 1: 5.6, 2: 5.4, 3: 5.6}, label: 2}
-	   ]
-	 ]
-   ]
-  ]
-  return (point_tree, [0, 1, 2, 3])
+def time_process(train_tree, test_tree, features_indexes, max_depth, current_depth):
+  with IO:
+    (start_high, start_low) <- IO/get_time()
+    * <- IO/print("start: ")
+    * <- IO/print(u24/to_string(start_high))
+    * <- IO/print(", ")
+    * <- IO/print(u24/to_string(start_low))
+    decision_tree = grow_tree(train_tree, features_indexes, max_depth, current_depth)
+    result = predict(test_tree, decision_tree)
+    * <- IO/print(result)
+    (end_high, end_low) <- IO/get_time()
+    * <- IO/print("\n")
+    * <- IO/print("end: ")
+    * <- IO/print(u24/to_string(end_high))
+    * <- IO/print(", ")
+    * <- IO/print(u24/to_string(end_low))
+    * <- IO/print("\n")
+    * <- IO/print("diff: ")
+    * <- IO/print(u24/to_string((end_high - start_high)))
+    * <- IO/print(", ")
+    * <- IO/print(u24/to_string((end_low - start_low)))
+    * <- IO/print("\n")
+    return wrap(result)
 
-def generate_test_points() -> Tree(Point):
-  return ![
-           ![
-             !Point{features: {0: 3.4, 1: 1.2, 2: 1.3, 3: 1.4}, label: 9},
-             !Point{features: {0: 15.1, 1: 1.2, 2: 1.3, 3: 1.4}, label: 9}
-           ],
-           !Point{features: {0: 0.7, 1: 1.2, 2: 1.3, 3: 1.4}, label: 9}
-  ]
+def generate_points(file_path: String, features_indexes: List(u24)):
+  with IO:
+    content <- IO/FS/read_file(file_path)
+    match content:
+      case Result/Ok:
+        decoded_content = String/decode_utf8(content.val)
+        lines = split_lines(decoded_content)
+        point_list = build_point_list(lines, features_indexes)
+        (list_length, _) = List/length(point_list)
+        (point_tree, _) = tree_from_list(point_list, list_length)
+        return wrap(point_tree)
+      case Result/Err:
+        * <- IO/print("Error reading file\n")
+        return unreachable()
+
+def tree_from_list(list: List(Point), size: u24) -> (Tree(Point), List(Point)):
+  if size == 1:
+    return (Tree/Leaf {value: head_of(list)}, tail_of(list))
+  else:
+    left_size = size / 2
+    right_size = size - left_size
+
+    (left_tree, rest_after_left) = tree_from_list(list, left_size)
+    (right_tree, rest_after_right) = tree_from_list(rest_after_left, right_size)
+
+    return (Tree/Node {left: left_tree, right: right_tree}, rest_after_right)
+
+def build_point_list(list: List(String), features_indexes: List(u24)) -> List(Point):
+  semicolon_char = 59
+  comma_char = 44
+  match list:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      fields = split_string(list.head, semicolon_char)
+      (features_string, label_string) = first_two_from(fields)
+      features_split = split_string(features_string, comma_char)
+      label = string_to_int(label_string)
+      features_list = build_features(features_split)
+      features_map = list_to_map(features_list, features_indexes, Map/empty())
+      return List/Cons {head: Point {features: features_map, label: label}, tail: build_point_list(list.tail, features_indexes)}
+
+def build_features(string_values: List(String)) -> List(f24):
+  match string_values:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      return List/Cons {head: string_to_float(string_values.head), tail: build_features(string_values.tail)}
+
+def list_to_map(features_list: List(f24), features_indexes: List(u24), result: Map(f24)) -> Map(f24):
+  match features_list:
+    case List/Nil:
+      return result
+    case List/Cons:
+      index = head_of(features_indexes)
+      result[index] = features_list.head
+      return list_to_map(features_list.tail, tail_of(features_indexes), result)
+
+def head_of(list):
+  match list:
+    case List/Nil:
+      return unreachable()
+    case List/Cons:
+      return list.head
+
+def tail_of(list):
+  match list:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      return list.tail
+
+def split_string(string: String, delim: u24) -> List(String):
+  split = String/split(string, delim)
+  return reverse_all(split)
+
+def reverse_all(list: List(String)) -> List(String):
+  match list:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      return List/Cons {head: reverse_string(list.head), tail: reverse_all(list.tail)}
+
+def reverse_string(raw: String) -> String:
+  acc = ""
+  fold raw with acc:
+    case String/Nil:
+      return acc
+    case String/Cons:
+      return raw.tail(String/Cons { head: raw.head, tail: acc })
+
+def powU(base: u24, exp: u24) -> u24:
+  if exp == 0:
+    return 1
+  else:
+    return base * powU(base, exp - 1)
+
+def powF(base: f24, exp: f24) -> f24:
+  if exp == 0.0:
+    return 1.0
+  else:
+    return base * powF(base, exp - 1.0)
+
+def string_to_float(string_value: String) -> f24:
+  dot_char = 46
+  split = split_string(string_value, dot_char)
+  (raw_integer_part, raw_fraction_part) = first_two_from(split)
+  integer_part = string_to_int(raw_integer_part)
+  fraction_part = string_to_int(raw_fraction_part)
+  length_fraction_part = string_length(raw_fraction_part)
+  result_fraction_part = u24/to_f24(fraction_part) / powF(10.0, u24/to_f24(length_fraction_part))
+  return u24/to_f24(integer_part) + result_fraction_part
+
+def string_to_int(string: String) -> u24:
+  unit = string_length(string)
+  fold string with unit:
+    case String/Nil:
+      return 0
+    case String/Cons:
+      return char_to_int(string.head) * powU(10, unit - 1) + string.tail(unit - 1)
+
+def string_length(string: String) -> u24:
+  match string:
+    case String/Nil:
+      return 0
+    case String/Cons:
+      return string_length(string.tail) + 1
+
+def char_to_int(char: u24) -> u24:
+  return char - 48
+
+def first_two_from(list: List(String)) -> (String, String):
+  match list:
+    case List/Nil:
+      return unreachable()
+    case List/Cons:
+      second = list.tail
+      match second:
+        case List/Nil:
+          return unreachable()
+        case List/Cons:
+          return (list.head, second.head)
+
+def split_lines(raw_string: String) -> List(String):
+  new_line_char = 10
+  first_split = split_string(raw_string, new_line_char)
+  fold first_split:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      return List/Cons {head: clean_line(first_split.head), tail: first_split.tail}
+
+def clean_line(line: String) -> String:
+  carriage_return_char = 13
+  match line:
+    case String/Nil:
+      return String/Nil
+    case String/Cons:
+      if line.head == carriage_return_char:
+        return String/Nil
+      else:
+        return String/Cons {head: line.head, tail: clean_line(line.tail)}
