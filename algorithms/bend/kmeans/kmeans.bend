@@ -27,7 +27,7 @@ def sum_diffs(features_a: List(f24), features_b: List(f24)) -> f24:
   match features_a:
     case List/Nil:
       return 0.0
-    case List.Cons:
+    case List/Cons:
       match features_b:
         case List/Nil:
           return 0.0
@@ -158,11 +158,11 @@ def fit(point_tree: PointTree, centroids: List(Point), count: u24, max_count: u2
 
 def main():
   with IO:
-    points <- generate_points("testA.txt")
-    initial_centroids <- generate_points("centroidsA.txt")
+    points <- generate_points("test.txt")
+    initial_centroids <- generate_points("centroids.txt")
     (points_length, _) = List/length(points)
     (point_tree, _) = tree_from_list(points, points_length)
-    return time_process(point_tree, initial_centroids, 0, 5)
+    return time_process(point_tree, initial_centroids, 0, 0)
 
 
 
@@ -269,14 +269,29 @@ def powF(base: f24, exp: f24) -> f24:
     return base * powF(base, exp - 1.0)
 
 def string_to_float(string_value: String) -> f24:
+  (is_negative, positive_string) = remove_negative(string_value)
   dot_char = 46
-  split = split_string(string_value, dot_char)
+  split = split_string(positive_string, dot_char)
   (raw_integer_part, raw_fraction_part) = first_two_from(split)
   integer_part = string_to_int(raw_integer_part)
   fraction_part = string_to_int(raw_fraction_part)
   length_fraction_part = string_length(raw_fraction_part)
   result_fraction_part = u24/to_f24(fraction_part) / powF(10.0, u24/to_f24(length_fraction_part))
-  return u24/to_f24(integer_part) + result_fraction_part
+  if is_negative:
+    return 0.0 - (u24/to_f24(integer_part) + result_fraction_part)
+  else:
+    return u24/to_f24(integer_part) + result_fraction_part
+
+def remove_negative(raw_string: String) -> (u24, String):
+  minus_char = 45
+  match raw_string:
+    case String/Nil:
+      return unreachable()
+    case String/Cons:
+      if raw_string.head == minus_char:
+        return (1, raw_string.tail)
+      else:
+        return (0, raw_string)
 
 def string_to_int(string: String) -> u24:
   unit = string_length(string)
