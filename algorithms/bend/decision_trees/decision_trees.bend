@@ -35,7 +35,7 @@ def find_best_split(point_tree: Tree(Point), every_feature_indexes: List(u24)) -
       if current_impurity <= next_impurity:
         return (current_impurity, current_feature_index, current_threshold)
       else:
-        return (next_impurity, next_feature_index, current_threshold)
+        return (next_impurity, next_feature_index, next_threshold)
 
 def find_best_split_feature(point_tree: Tree(Point), feature_index: u24) -> (f24, u24, f24):
   full_tree = point_tree
@@ -191,10 +191,10 @@ def predict_single(point: Point, decision_tree: DecisionTree) -> u24:
 
 def main():
   with IO:
-    features_indexes = [0, 1, 2, 3]
-    train_tree <- generate_points("trainA.txt", features_indexes)
-    test_tree <- generate_points("testA.txt", features_indexes)
-    return time_process(train_tree, test_tree, features_indexes, 5, 0)
+    features_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    train_tree <- generate_points("train.txt", features_indexes)
+    test_tree <- generate_points("test.txt", features_indexes)
+    return time_process(train_tree, test_tree, features_indexes, 10, 0)
 
 def time_process(train_tree, test_tree, features_indexes, max_depth, current_depth):
   with IO:

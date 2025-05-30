@@ -162,7 +162,7 @@ def main():
     initial_centroids <- generate_points("centroids.txt")
     (points_length, _) = List/length(points)
     (point_tree, _) = tree_from_list(points, points_length)
-    return time_process(point_tree, initial_centroids, 0, 0)
+    return time_process(point_tree, initial_centroids, 0, 5)
 
 
 
