@@ -4,28 +4,6 @@ type LabelTree:
   Nil
   Node {label: u24, count: u24, ~left, ~right}
 
-def sort(xs: List(MeasuredPoint)) -> List(MeasuredPoint):
-  match xs:
-    case List/Nil:
-      return List/Nil
-    case List/Cons:
-      return insert(xs.head, sort(xs.tail))
-
-def insert(v: MeasuredPoint, xs: List(MeasuredPoint)) -> List(MeasuredPoint):
-  match xs:
-    case List/Nil:
-      return List/Cons(v, List/Nil)
-    case List/Cons:
-      return swap_gt(v, xs.head, xs.tail)
-
-def swap_gt(v: MeasuredPoint, x: MeasuredPoint, xs: List(MeasuredPoint)) -> List(MeasuredPoint):
-  open MeasuredPoint: v
-  open MeasuredPoint: x
-  if x.distance > v.distance:
-    return List/Cons(v, List/Cons(x, xs))
-  else:
-    return List/Cons(x, insert(v, xs))
-
 def calc_distance(point_a: Point, point_b: Point) -> f24:
   open Point: point_a
   open Point: point_b
@@ -51,10 +29,55 @@ def predict(points_train: List(Point), points_test: List(Point), k: u24) -> List
                        tail: predict(points_train, points_test.tail, k)}
 
 def predict_single(points_train: List(Point), point: Point, k: u24) -> u24:
-  distances = calc_distances(points_train, point)
-  sorted_distances = sort(distances)
-  first_k_distances = take_k_first(sorted_distances, k)
-  return get_majority(first_k_distances)
+  top_k = calc_distances_k(points_train, point, k)
+  return get_majority(top_k)
+
+def calc_distances_k(points_train: List(Point), point: Point, k: u24) -> List(MeasuredPoint):
+  (list_length, list) = List/length(points_train)
+
+  bend top_k = List/Nil, count = 0, current = points_train:
+    when count < list_length:
+      match current:
+        case List/Nil:
+          return top_k
+        case List/Cons:
+          new_distance = MeasuredPoint { point: current.head, distance: calc_distance(current.head, point) }
+          top_k = insert_top_k(top_k, new_distance, k)
+          return fork(top_k, count + 1, current.tail)
+    else:
+      return top_k
+
+def insert_top_k(current_list: List(MeasuredPoint), new_item: MeasuredPoint, k: u24) -> List(MeasuredPoint):
+  updated_list = insert_sorted(new_item, current_list)
+  (length, _) = List/length(updated_list)
+  if length > k:
+    return remove_last(updated_list)
+  else:
+    return updated_list
+
+def insert_sorted(new_point: MeasuredPoint, list: List(MeasuredPoint)) -> List(MeasuredPoint):
+  match list:
+    case List/Nil:
+      return List/Cons(new_point, List/Nil)
+    case List/Cons:
+      open MeasuredPoint: new_point
+      list_head = list.head
+      open MeasuredPoint: list_head
+      if list_head.distance > new_point.distance:
+        return List/Cons(new_point, list)
+      else:
+        return List/Cons(list_head, insert_sorted(new_point, list.tail))
+
+def remove_last(list):
+  match list:
+    case List/Nil:
+      return List/Nil
+    case List/Cons:
+      match list.tail:
+        case List/Nil:
+          return List/Nil
+        case List/Cons:
+          return List/Cons(list.head, remove_last(list.tail))
 
 def get_majority(points: List(MeasuredPoint)) -> u24:
   label_tree = build_label_tree(points, LabelTree/Nil)
@@ -98,33 +121,6 @@ def max(label1: u24, num1: u24, label2: u24, num2: u24, label3: u24, num3: u24) 
     return (label2, num2)
   else:
     return (label3, num3)
-
-def calc_distances(points_train: List(Point), point: Point) -> List(MeasuredPoint):
-  (list_length, list) = List/length(points_train)
-  bend result = List/Nil, count = 0, current = points_train:
-    when count < list_length:
-      match current:
-        case List/Nil:
-          return result
-        case List/Cons:
-          return fork(List/Cons {head: MeasuredPoint
-                                       {point: current.head, distance: calc_distance(current.head, point)},
-                                 tail: result},
-                      count + 1,
-                      current.tail)
-    else:
-      return result
-
-def take_k_first(points: List(MeasuredPoint), k: u24) -> List(MeasuredPoint):
-  bend result = List/Nil, count = 0, current = points:
-    when count < k:
-      match current:
-        case List/Cons:
-          return fork(List/Cons { head: current.head, tail: result }, count + 1, current.tail)
-        case List/Nil:
-          return result
-    else:
-      return result
 
 def main():
   with IO:
