@@ -1,0 +1,16 @@
+funciona até ~17k
+
+geração: 
+
+n_samples = 100_000   # Total rows
+n_features = 10       # Number of features
+n_classes = 5         # Number of classes
+test_size = 100       # Rows for test
+
+X, y = make_blobs(
+    n_samples=n_samples,
+    n_features=n_features,
+    centers=n_classes,
+    cluster_std=1.5,
+    random_state=42
+)
