@@ -1,13 +1,13 @@
 from sklearn.datasets import make_blobs
 import random
 
-n_samples = 100_000
+n_samples = 30_000
 n_features = 10
 n_classes = 5
 test_size = 100
 
-output_train = 'train.txt'
-output_test = 'test.txt'
+output_train = '../../../datasets/knn/train.txt'
+output_test = '../../../datasets/knn/test.txt'
 
 X, y = make_blobs(
     n_samples=n_samples,

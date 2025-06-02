@@ -170,7 +170,7 @@ def main():
     initial_centroids = dataset/centroids()
     (points_length, _) = List/length(points)
     (point_tree, _) = tree_from_list(points, points_length)
-    return time_process(point_tree, initial_centroids, 0, 5)
+    return time_process(point_tree, initial_centroids, 0, 10)
 
 
 def time_process(points_test, initial_centroids, count, max_count):

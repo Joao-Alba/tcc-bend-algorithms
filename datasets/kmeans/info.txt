@@ -1,11 +1,9 @@
-funciona até XXX
+geração:
 
-geração: 
-
-n_samples = 100_000   # Number of data points
-n_features = 10       # Number of features
-n_clusters = 5        # Clusters for data generation (doesn't affect centroids)
-n_centroids = 5       # Number of centroids to pick
+n_samples = 30_000
+n_features = 10
+n_clusters = 5
+n_centroids = 5
 
 X, _ = make_blobs(
     n_samples=n_samples,

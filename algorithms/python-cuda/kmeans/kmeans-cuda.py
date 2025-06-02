@@ -1,39 +1,49 @@
 import numpy as np
-import cupy as cp
+import cupy as cupy
 from cuml.cluster import KMeans
 
-file_path = 'data.txt'
+def load_data(file_path):
+    features = []
+    labels = []
 
-features = []
-with open(file_path, 'r') as f:
-    for line in f:
-        line = line.strip()
-        if not line:
-            continue
-        parts = line.split(';')
-        feature_part = parts[0]
-        feature_values = list(map(float, feature_part.split(',')))
-        features.append(feature_values)
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(';')
+            feature_part = parts[0]
+            label_part = parts[1] if len(parts) > 1 else None
 
-X_np = np.array(features, dtype=np.float32)
-X_gpu = cp.asarray(X_np)
+            feature_values = list(map(float, feature_part.split(',')))
+            features.append(feature_values)
+            labels.append(label_part)
 
+    X_np = np.array(features, dtype=np.float32)
+    X_gpu = cupy.asarray(X_np)
+    y_gpu = cupy.asarray(labels)
 
-kmeans = KMeans(n_clusters=5, max_iter=300)
+    return X_gpu, y_gpu
 
-kmeans.fit(X_gpu)
+X_test, y_test = load_data('../../../datasets/kmeans/test.txt')
+centroids, _ = load_data('../../../datasets/kmeans/centroids.txt')
 
-start = cp.cuda.Event()
-end = cp.cuda.Event()
+kmeans = KMeans(
+    n_clusters=centroids.shape[0],
+    init=centroids,
+    max_iter=10
+)
+
+start = cupy.cuda.Event()
+end = cupy.cuda.Event()
 
 start.record()
 
-kmeans.fit(X_gpu)
-labels = kmeans.labels_
+kmeans.fit(X_test)
+predictions = kmeans.predict(X_test)
 
 end.record()
 end.synchronize()
 
-gpu_time_ms = cp.cuda.get_elapsed_time(start, end)
-
-print(f"GPU compute time (KMeans): {gpu_time_ms:.3f} ms")
+gpu_time_ms = cupy.cuda.get_elapsed_time(start, end)
+print(f"\nGPU compute time: {gpu_time_ms:.3f} ms\n")

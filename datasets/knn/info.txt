@@ -1,11 +1,9 @@
-funciona até ~17k
+geração:
 
-geração: 
-
-n_samples = 100_000   # Total rows
-n_features = 10       # Number of features
-n_classes = 5         # Number of classes
-test_size = 100       # Rows for test
+n_samples = 30_000
+n_features = 10
+n_classes = 5
+test_size = 100
 
 X, y = make_blobs(
     n_samples=n_samples,
