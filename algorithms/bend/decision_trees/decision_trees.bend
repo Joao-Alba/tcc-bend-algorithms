@@ -1,7 +1,10 @@
+from ./ import dataset
+
 type DecisionTree:
   Node {feature_index: u24, threshold: f24, ~left, ~right}
   Leaf {prediction: u24}
 object Point {features: Map(f24), label: u24}
+
 
 def grow_tree(point_tree: Tree(Point), every_feature_indexes: List(u24), max_depth: u24, current_depth: u24) -> DecisionTree:
   if current_depth >= max_depth | calc_gini_impurity(point_tree) == 0.0:
@@ -192,9 +195,14 @@ def predict_single(point: Point, decision_tree: DecisionTree) -> u24:
 def main():
   with IO:
     features_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    train_tree <- generate_points("train.txt", features_indexes)
-    test_tree <- generate_points("test.txt", features_indexes)
+    train_list = dataset/train()
+    test_list = dataset/test()
+    (train_length, _) = List/length(train_list)
+    (train_tree, _) = tree_from_list(train_list, train_length)
+    (test_length, _) = List/length(test_list)
+    (test_tree, _) = tree_from_list(test_list, test_length)
     return time_process(train_tree, test_tree, features_indexes, 10, 0)
+
 
 def time_process(train_tree, test_tree, features_indexes, max_depth, current_depth):
   with IO:
@@ -220,21 +228,6 @@ def time_process(train_tree, test_tree, features_indexes, max_depth, current_dep
     * <- IO/print("\n")
     return wrap(result)
 
-def generate_points(file_path: String, features_indexes: List(u24)):
-  with IO:
-    content <- IO/FS/read_file(file_path)
-    match content:
-      case Result/Ok:
-        decoded_content = String/decode_utf8(content.val)
-        lines = split_lines(decoded_content)
-        point_list = build_point_list(lines, features_indexes)
-        (list_length, _) = List/length(point_list)
-        (point_tree, _) = tree_from_list(point_list, list_length)
-        return wrap(point_tree)
-      case Result/Err:
-        * <- IO/print("Error reading file\n")
-        return unreachable()
-
 def tree_from_list(list: List(Point), size: u24) -> (Tree(Point), List(Point)):
   if size == 1:
     return (Tree/Leaf {value: head_of(list)}, tail_of(list))
@@ -246,37 +239,6 @@ def tree_from_list(list: List(Point), size: u24) -> (Tree(Point), List(Point)):
     (right_tree, rest_after_right) = tree_from_list(rest_after_left, right_size)
 
     return (Tree/Node {left: left_tree, right: right_tree}, rest_after_right)
-
-def build_point_list(list: List(String), features_indexes: List(u24)) -> List(Point):
-  semicolon_char = 59
-  comma_char = 44
-  match list:
-    case List/Nil:
-      return List/Nil
-    case List/Cons:
-      fields = split_string(list.head, semicolon_char)
-      (features_string, label_string) = first_two_from(fields)
-      features_split = split_string(features_string, comma_char)
-      label = string_to_int(label_string)
-      features_list = build_features(features_split)
-      features_map = list_to_map(features_list, features_indexes, Map/empty())
-      return List/Cons {head: Point {features: features_map, label: label}, tail: build_point_list(list.tail, features_indexes)}
-
-def build_features(string_values: List(String)) -> List(f24):
-  match string_values:
-    case List/Nil:
-      return List/Nil
-    case List/Cons:
-      return List/Cons {head: string_to_float(string_values.head), tail: build_features(string_values.tail)}
-
-def list_to_map(features_list: List(f24), features_indexes: List(u24), result: Map(f24)) -> Map(f24):
-  match features_list:
-    case List/Nil:
-      return result
-    case List/Cons:
-      index = head_of(features_indexes)
-      result[index] = features_list.head
-      return list_to_map(features_list.tail, tail_of(features_indexes), result)
 
 def head_of(list):
   match list:
@@ -291,109 +253,3 @@ def tail_of(list):
       return List/Nil
     case List/Cons:
       return list.tail
-
-def split_string(string: String, delim: u24) -> List(String):
-  split = String/split(string, delim)
-  return reverse_all(split)
-
-def reverse_all(list: List(String)) -> List(String):
-  match list:
-    case List/Nil:
-      return List/Nil
-    case List/Cons:
-      return List/Cons {head: reverse_string(list.head), tail: reverse_all(list.tail)}
-
-def reverse_string(raw: String) -> String:
-  acc = ""
-  fold raw with acc:
-    case String/Nil:
-      return acc
-    case String/Cons:
-      return raw.tail(String/Cons { head: raw.head, tail: acc })
-
-def powU(base: u24, exp: u24) -> u24:
-  if exp == 0:
-    return 1
-  else:
-    return base * powU(base, exp - 1)
-
-def powF(base: f24, exp: f24) -> f24:
-  if exp == 0.0:
-    return 1.0
-  else:
-    return base * powF(base, exp - 1.0)
-
-def string_to_float(string_value: String) -> f24:
-  (is_negative, positive_string) = remove_negative(string_value)
-  dot_char = 46
-  split = split_string(positive_string, dot_char)
-  (raw_integer_part, raw_fraction_part) = first_two_from(split)
-  integer_part = string_to_int(raw_integer_part)
-  fraction_part = string_to_int(raw_fraction_part)
-  length_fraction_part = string_length(raw_fraction_part)
-  result_fraction_part = u24/to_f24(fraction_part) / powF(10.0, u24/to_f24(length_fraction_part))
-  if is_negative:
-    return 0.0 - (u24/to_f24(integer_part) + result_fraction_part)
-  else:
-    return u24/to_f24(integer_part) + result_fraction_part
-
-def remove_negative(raw_string: String) -> (u24, String):
-  minus_char = 45
-  match raw_string:
-    case String/Nil:
-      return unreachable()
-    case String/Cons:
-      if raw_string.head == minus_char:
-        return (1, raw_string.tail)
-      else:
-        return (0, raw_string)
-
-def string_to_int(string: String) -> u24:
-  unit = string_length(string)
-  fold string with unit:
-    case String/Nil:
-      return 0
-    case String/Cons:
-      return char_to_int(string.head) * powU(10, unit - 1) + string.tail(unit - 1)
-
-def string_length(string: String) -> u24:
-  match string:
-    case String/Nil:
-      return 0
-    case String/Cons:
-      return string_length(string.tail) + 1
-
-def char_to_int(char: u24) -> u24:
-  return char - 48
-
-def first_two_from(list: List(String)) -> (String, String):
-  match list:
-    case List/Nil:
-      return unreachable()
-    case List/Cons:
-      second = list.tail
-      match second:
-        case List/Nil:
-          return unreachable()
-        case List/Cons:
-          return (list.head, second.head)
-
-def split_lines(raw_string: String) -> List(String):
-  new_line_char = 10
-  first_split = split_string(raw_string, new_line_char)
-  fold first_split:
-    case List/Nil:
-      return List/Nil
-    case List/Cons:
-      return List/Cons {head: clean_line(first_split.head), tail: first_split.tail}
-
-def clean_line(line: String) -> String:
-  carriage_return_char = 13
-  match line:
-    case String/Nil:
-      return String/Nil
-    case String/Cons:
-      if line.head == carriage_return_char:
-        return String/Nil
-      else:
-        return String/Cons {head: line.head, tail: clean_line(line.tail)}
