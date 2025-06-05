@@ -132,7 +132,6 @@ def max(label1: u24, num1: u24, label2: u24, num2: u24, label3: u24, num3: u24) 
     return (label3, num3)
 
 def main():
-  with IO:
-    points_train = dataset/train()
-    points_test = dataset/test()
-    return predict(points_train, points_test, 5)
+  points_train = dataset/train()
+  points_test = dataset/test()
+  return predict(points_train, points_test, 5)
