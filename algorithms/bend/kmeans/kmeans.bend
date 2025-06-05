@@ -169,7 +169,7 @@ def main():
   initial_centroids = dataset/centroids()
   (points_length, _) = List/length(points)
   (point_tree, _) = tree_from_list(points, points_length)
-  (_, result) = fit(points_test, initial_centroids, 0, 10)
+  (_, result) = fit(point_tree, initial_centroids, 0, 10)
   return result
 
 def tree_from_list(list: List(Point), size: u24) -> (PointTree, List(Point)):
