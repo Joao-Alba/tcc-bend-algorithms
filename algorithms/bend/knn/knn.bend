@@ -140,6 +140,7 @@ def main():
 
 def time_process(points_train, points_test):
   with IO:
+    * <- IO/print(points_train)
     (start_high, start_low) <- IO/get_time()
     * <- IO/print("start: ")
     * <- IO/print(u24/to_string(start_high))

@@ -175,6 +175,7 @@ def main():
 
 def time_process(points_test, initial_centroids, count, max_count):
   with IO:
+    * <- IO/print(points_test)
     (start_high, start_low) <- IO/get_time()
     * <- IO/print("start: ")
     * <- IO/print(u24/to_string(start_high))

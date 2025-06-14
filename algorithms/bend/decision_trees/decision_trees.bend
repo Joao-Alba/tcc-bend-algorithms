@@ -206,6 +206,7 @@ def main():
 
 def time_process(train_tree, test_tree, features_indexes, max_depth, current_depth):
   with IO:
+    * <- IO/print(train_tree)
     (start_high, start_low) <- IO/get_time()
     * <- IO/print("start: ")
     * <- IO/print(u24/to_string(start_high))

@@ -17,7 +17,7 @@ def load_data(file_path):
 
             feature_values = list(map(float, feature_part.split(',')))
             features.append(feature_values)
-            labels.append(label_part)
+            labels.append(int(label_part))
 
     X_np = np.array(features, dtype=np.float32)
     X_gpu = cupy.asarray(X_np)
