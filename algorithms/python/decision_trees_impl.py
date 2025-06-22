@@ -1,4 +1,3 @@
-import numpy as np
 import time
 
 def load_data(file_path):
@@ -17,7 +16,6 @@ def load_data(file_path):
             feature_values = list(map(float, feature_part.split(',')))
             features.append(feature_values)
             labels.append(int(label_part))
-
 
     return features, labels
 
@@ -114,7 +112,13 @@ def traverse(node, point):
 X_train, y_train = load_data('../../datasets/decision_trees/train.txt')
 X_test, y_test = load_data('../../datasets/decision_trees/test.txt')
 
+start = time.time()
+
 result_tree = fit(X_train, y_train, 10)
 predicted = predict(result_tree, X_test)
+
+end = time.time()
+
+print('Time: ' + str(end-start))
 print('Expected: ' + str(y_test))
 print('Result: ' + str(predicted))
