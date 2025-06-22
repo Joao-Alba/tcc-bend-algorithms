@@ -135,29 +135,9 @@ def main():
   with IO:
     points_train = dataset/train()
     points_test = dataset/test()
-    return time_process(points_train, points_test)
-
-
-def time_process(points_train, points_test):
-  with IO:
-    * <- IO/print(points_train)
-    (start_high, start_low) <- IO/get_time()
-    * <- IO/print("start: ")
-    * <- IO/print(u24/to_string(start_high))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string(start_low))
     result = predict(points_train, points_test, 5)
-    * <- IO/print(result)
-    (end_high, end_low) <- IO/get_time()
-    * <- IO/print("\n")
-    * <- IO/print("end: ")
-    * <- IO/print(u24/to_string(end_high))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string(end_low))
-    * <- IO/print("\n")
-    * <- IO/print("diff: ")
-    * <- IO/print(u24/to_string((end_high - start_high)))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string((end_low - start_low)))
-    * <- IO/print("\n")
-    return wrap(result)
+    match result:
+      case List/Nil:
+        return 99
+      case List/Cons:
+        return result.head

@@ -1,7 +1,7 @@
 from sklearn.datasets import make_blobs
 import random
 
-n_samples = 30_000
+n_samples = 200
 n_features = 10
 n_classes = 5
 test_size = 100
