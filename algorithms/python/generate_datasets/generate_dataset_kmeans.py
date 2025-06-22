@@ -1,7 +1,7 @@
 from sklearn.datasets import make_blobs
 import numpy as np
 
-n_samples = 200
+n_samples = 100
 n_features = 10
 n_clusters = 5
 n_centroids = 5
