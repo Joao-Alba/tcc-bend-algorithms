@@ -28,7 +28,7 @@ def load_data(file_path):
 X_train, y_train = load_data('../../../datasets/decision_trees/train.txt')
 X_test, y_test = load_data('../../../datasets/decision_trees/test.txt')
 
-tree = cuRFC(max_features=10.0,
+tree = cuRFC(max_features=10,
              n_bins=8,
              n_estimators=1,
              split_criterion='gini',
