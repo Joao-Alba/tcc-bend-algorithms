@@ -1,6 +1,6 @@
 import numpy as np
 import cupy as cupy
-from cuml.tree import DecisionTreeClassifier
+from cuml import DecisionTreeClassifier
 
 def load_data(file_path):
     features = []
