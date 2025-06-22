@@ -39,5 +39,4 @@ kmeans.fit(X_train)
 y_pred = kmeans.predict(X_train)
 end = time.time()
 
-print(y_pred.tolist())
 print('Time: ' + str(end - start))

@@ -90,4 +90,3 @@ result = predict(X, len(centroids), 10)
 end = time.time()
 
 print("Time: " + str(end - start))
-print(result)

@@ -120,5 +120,3 @@ predicted = predict(result_tree, X_test)
 end = time.time()
 
 print('Time: ' + str(end-start))
-print('Expected: ' + str(y_test))
-print('Result: ' + str(predicted))
