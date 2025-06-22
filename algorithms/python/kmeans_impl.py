@@ -1,10 +1,26 @@
-from sklearn.datasets import load_iris
 import random
 import math
+import time
 
-iris = load_iris()
-X = iris.data.tolist()
-y = iris.target.tolist()
+def load_data(file_path):
+    features = []
+    labels = []
+
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(';')
+            feature_part = parts[0]
+            label_part = parts[1] if len(parts) > 1 else None
+
+            feature_values = list(map(float, feature_part.split(',')))
+            features.append(feature_values)
+            labels.append(int(label_part))
+
+    return features, labels
+
 
 def predict(points, k, iterations):
     centroids = random.sample(points, k)
@@ -64,4 +80,14 @@ def calc_distance(point_a, point_b):
         difference_sum += (point_a[feature_index] - point_b[feature_index]) ** 2
     return math.sqrt(difference_sum)
 
-print(predict(X, 3, 5))
+X, _ = load_data('../../datasets/kmeans/test.txt')
+centroids, _ = load_data('../../datasets/kmeans/centroids.txt')
+
+start = time.time()
+
+result = predict(X, len(centroids), 10)
+
+end = time.time()
+
+print("Time: " + str(end - start))
+print(result)

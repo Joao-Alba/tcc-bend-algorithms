@@ -1,6 +1,5 @@
 import time
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
 import numpy as np
 
 def load_data(file_path):
@@ -31,7 +30,6 @@ X_test, y_test = load_data('../../datasets/knn/test.txt')
 knn = KNeighborsClassifier(n_neighbors=5)
 
 start = time.time()
-
 knn.fit(X_train, y_train)
 y_pred = knn.predict(X_test)
 

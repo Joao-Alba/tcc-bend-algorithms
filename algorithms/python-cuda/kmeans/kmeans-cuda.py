@@ -31,7 +31,8 @@ centroids, _ = load_data('../../../datasets/kmeans/centroids.txt')
 kmeans = KMeans(
     n_clusters=centroids.shape[0],
     init=centroids,
-    max_iter=10
+    max_iter=10,
+    tol=1e-12
 )
 
 start = cupy.cuda.Event()

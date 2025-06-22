@@ -165,37 +165,16 @@ def fit(point_tree: PointTree, centroids: List(Point), count: u24, max_count: u2
     return (point_tree, centroids)
 
 def main():
-  with IO:
-    points = dataset/test()
-    initial_centroids = dataset/centroids()
-    (points_length, _) = List/length(points)
-    (point_tree, _) = tree_from_list(points, points_length)
-    return time_process(point_tree, initial_centroids, 0, 10)
-
-
-def time_process(points_test, initial_centroids, count, max_count):
-  with IO:
-    * <- IO/print(points_test)
-    (start_high, start_low) <- IO/get_time()
-    * <- IO/print("start: ")
-    * <- IO/print(u24/to_string(start_high))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string(start_low))
-    (_, result) = fit(points_test, initial_centroids, count, max_count)
-    * <- IO/print(result)
-    (end_high, end_low) <- IO/get_time()
-    * <- IO/print("\n")
-    * <- IO/print("end: ")
-    * <- IO/print(u24/to_string(end_high))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string(end_low))
-    * <- IO/print("\n")
-    * <- IO/print("diff: ")
-    * <- IO/print(u24/to_string((end_high - start_high)))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string((end_low - start_low)))
-    * <- IO/print("\n")
-    return wrap(result)
+  points = dataset/test()
+  initial_centroids = dataset/centroids()
+  (points_length, _) = List/length(points)
+  (point_tree, _) = tree_from_list(points, points_length)
+  (tree, list) = fit(point_tree, initial_centroids, 0, 10)
+  match list:
+    case List/Nil:
+      return 999
+    case List/Cons:
+      return list.head
 
 def tree_from_list(list: List(Point), size: u24) -> (PointTree, List(Point)):
   if size == 0:
