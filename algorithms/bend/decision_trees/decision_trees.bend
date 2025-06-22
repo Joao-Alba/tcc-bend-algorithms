@@ -193,41 +193,20 @@ def predict_single(point: Point, decision_tree: DecisionTree) -> u24:
         return decision_tree.right()
 
 def main():
-  with IO:
-    features_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    train_list = dataset/train()
-    test_list = dataset/test()
-    (train_length, _) = List/length(train_list)
-    (train_tree, _) = tree_from_list(train_list, train_length)
-    (test_length, _) = List/length(test_list)
-    (test_tree, _) = tree_from_list(test_list, test_length)
-    return time_process(train_tree, test_tree, features_indexes, 10, 0)
-
-
-def time_process(train_tree, test_tree, features_indexes, max_depth, current_depth):
-  with IO:
-    * <- IO/print(train_tree)
-    (start_high, start_low) <- IO/get_time()
-    * <- IO/print("start: ")
-    * <- IO/print(u24/to_string(start_high))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string(start_low))
-    decision_tree = grow_tree(train_tree, features_indexes, max_depth, current_depth)
-    result = predict(test_tree, decision_tree)
-    * <- IO/print(result)
-    (end_high, end_low) <- IO/get_time()
-    * <- IO/print("\n")
-    * <- IO/print("end: ")
-    * <- IO/print(u24/to_string(end_high))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string(end_low))
-    * <- IO/print("\n")
-    * <- IO/print("diff: ")
-    * <- IO/print(u24/to_string((end_high - start_high)))
-    * <- IO/print(", ")
-    * <- IO/print(u24/to_string((end_low - start_low)))
-    * <- IO/print("\n")
-    return wrap(result)
+  features_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  train_list = dataset/train()
+  test_list = dataset/test()
+  (train_length, _) = List/length(train_list)
+  (train_tree, _) = tree_from_list(train_list, train_length)
+  (test_length, _) = List/length(test_list)
+  (test_tree, _) = tree_from_list(test_list, test_length)
+  decision_tree = grow_tree(train_tree, features_indexes, 10, 0)
+  result = predict(test_tree, decision_tree)
+  match result:
+    case Tree/Node:
+      return 99
+    case Tree/Leaf:
+      return 1
 
 def tree_from_list(list: List(Point), size: u24) -> (Tree(Point), List(Point)):
   if size == 1:

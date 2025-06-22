@@ -25,8 +25,8 @@ def load_data(file_path):
 
     return X_gpu, y_gpu
 
-X_train, y_train = load_data('../../../datasets/tree/train.txt')
-X_test, y_test = load_data('../../../datasets/tree/test.txt')
+X_train, y_train = load_data('../../../datasets/decision_trees/train.txt')
+X_test, y_test = load_data('../../../datasets/decision_trees/test.txt')
 
 tree = DecisionTreeClassifier(
     max_depth=10,

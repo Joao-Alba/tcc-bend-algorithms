@@ -1,5 +1,26 @@
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_iris
+import numpy as np
+import time
+
+def load_data(file_path):
+    features = []
+    labels = []
+
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(';')
+            feature_part = parts[0]
+            label_part = parts[1] if len(parts) > 1 else None
+
+            feature_values = list(map(float, feature_part.split(',')))
+            features.append(feature_values)
+            labels.append(int(label_part))
+
+
+    return features, labels
+
 
 def calc_gini_impurity(labels):
     counts = {}
@@ -90,16 +111,10 @@ def traverse(node, point):
     else:
         return traverse(node['right'], point)
 
-data = load_iris()
-X = data.data
-y = data.target
+X_train, y_train = load_data('../../datasets/decision_trees/train.txt')
+X_test, y_test = load_data('../../datasets/decision_trees/test.txt')
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-points = X_train.tolist()
-labels = y_train.tolist()
-test = X_test.tolist()
-
-result_tree = fit(points, labels, 2)
-predicted = predict(result_tree, test)
+result_tree = fit(X_train, y_train, 10)
+predicted = predict(result_tree, X_test)
 print('Expected: ' + str(y_test))
 print('Result: ' + str(predicted))

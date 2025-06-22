@@ -1,17 +1,38 @@
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_iris
+import numpy as np
+import time
 
-data = load_iris()
-X = data.data
-y = data.target
+def load_data(file_path):
+    features = []
+    labels = []
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(';')
+            feature_part = parts[0]
+            label_part = parts[1] if len(parts) > 1 else None
 
-classifier = DecisionTreeClassifier(random_state=42)
+            feature_values = list(map(float, feature_part.split(',')))
+            features.append(feature_values)
+            labels.append(int(label_part))
+
+    X_np = np.array(features, dtype=np.float32)
+    Y_np = np.array(labels, dtype=np.int64)
+
+    return X_np, Y_np
+
+X_train, y_train = load_data('../../datasets/decision_trees/train.txt')
+X_test, y_test = load_data('../../datasets/decision_trees/test.txt')
+
+classifier = DecisionTreeClassifier(random_state=42, max_depth=10)
+
+start = time.time()
+
 classifier.fit(X_train, y_train)
-
 predictions = classifier.predict(X_test)
 
-accuracy = (predictions == y_test).mean()
-print(f"Accuracy: {accuracy * 100:.2f}%")
+end = time.time()
+print('Time: ' + str(end - start))
