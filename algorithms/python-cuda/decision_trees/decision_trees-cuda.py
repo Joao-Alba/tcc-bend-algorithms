@@ -1,6 +1,6 @@
 import numpy as np
 import cupy as cupy
-from cuml import DecisionTreeClassifier
+from cuml.ensemble import RandomForestClassifier as cuRFC
 
 def load_data(file_path):
     features = []
@@ -28,10 +28,12 @@ def load_data(file_path):
 X_train, y_train = load_data('../../../datasets/decision_trees/train.txt')
 X_test, y_test = load_data('../../../datasets/decision_trees/test.txt')
 
-tree = DecisionTreeClassifier(
-    max_depth=10,
-    split_criterion='gini'
-)
+tree = cuRFC(max_features=10.0,
+             n_bins=8,
+             n_estimators=1,
+             split_criterion='gini',
+             bootstrap=False,
+             max_depth=10)
 
 start = cupy.cuda.Event()
 end = cupy.cuda.Event()
