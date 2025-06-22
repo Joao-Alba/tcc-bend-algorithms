@@ -1,8 +1,24 @@
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
+import time
 import math
 
-x, y = load_iris(return_X_y=True)
+def load_data(file_path):
+    features = []
+    labels = []
+
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(';')
+            feature_part = parts[0]
+            label_part = parts[1] if len(parts) > 1 else None
+
+            feature_values = list(map(float, feature_part.split(',')))
+            features.append(feature_values)
+            labels.append(int(label_part))
+
+    return features, labels
 
 def predict(points_train, labels_train, points_test, k):
     results = []
@@ -38,8 +54,11 @@ def get_majority(neighbors):
 def is_list_of_lists(var):
     return isinstance(var, list) and all(isinstance(i, list) for i in var)
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-x_train = x_train.tolist(); x_test = x_test.tolist(); y_train = y_train.tolist(); y_test = y_test.tolist()
+X_train, y_train = load_data('../../datasets/knn/train.txt')
+X_test, y_test = load_data('../../datasets/knn/test.txt')
 
-y_pred = predict(x_train, y_train, x_test, 5)
+start = time.time()
+y_pred = predict(X_train, y_train, X_test, 5)
+end = time.time()
+print('Time: ' + str(end-start))
 print(y_pred)

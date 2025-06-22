@@ -1,18 +1,41 @@
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+import time
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+import numpy as np
 
-x, y = load_iris(return_X_y=True)
+def load_data(file_path):
+    features = []
+    labels = []
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    with open(file_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split(';')
+            feature_part = parts[0]
+            label_part = parts[1] if len(parts) > 1 else None
+
+            feature_values = list(map(float, feature_part.split(',')))
+            features.append(feature_values)
+            labels.append(int(label_part))
+
+    X_np = np.array(features, dtype=np.float32)
+    Y_np = np.array(labels, dtype=np.int64)
+
+    return X_np, Y_np
+
+X_train, y_train = load_data('../../datasets/knn/train.txt')
+X_test, y_test = load_data('../../datasets/knn/test.txt')
 
 knn = KNeighborsClassifier(n_neighbors=5)
-knn.fit(x_train, y_train)
 
-y_pred = knn.predict(x_test)
+start = time.time()
+
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
+
+end = time.time()
+
+print('Time: ' + str(end-start))
 print(y_pred)
-accuracy = accuracy_score(y_test, y_pred)
-
-print(f"KNN Accuracy: {accuracy:.2f}")
